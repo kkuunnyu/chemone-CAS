@@ -89,7 +89,7 @@
     };
 
     // ✅ CAS 정규화: 접두사 제거하고 "123456-78-9" 패턴만 추출
-    const CAS_REGEX = /(\d{2,7}-\d{2}-\d)/i;
+    const CAS_REGEX = /(\d{2,}-\d{2}-\d)\b/;
     function normalizeCAS(s) {
       const txt = String(s || '').toLowerCase().trim();
       const m = txt.match(CAS_REGEX);
