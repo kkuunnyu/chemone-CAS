@@ -1,70 +1,534 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <title>CHEMONE 품목 조회</title>
   <link rel="icon" href="C-favicon.ico" type="image/x-icon" />
   <style>
-    @font-face { font-family: 'BladeRunner'; src: url('blade_runner.ttf') format('truetype'); }
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --line: #e5e7eb;
+      --brand: #1e40af;
+      --muted: #6b7280;
+      --badge-bg: #eef2ff;
+      --badge-bd: #c7d2fe;
+      --badge-fg: #3730a3;
+      --danger-bg: #ffe4e6;
+      /* 더 밝은 핑크 */
+      --danger-fg: #ef4444;
+      /* 더 선명한 빨강 */
+      --row-base: #fcfcfd;
+      /* 모든 행 기본 배경 */
+      --row-hover: #f3f4f6;
+      --radius: 10px;
+      --pad: 12px;
+      --table-font: 0.92rem;
+      --btn-h: 42px;
+      /* 버튼/입력 높이 통일 */
+    }
+
+    @font-face {
+      font-family: 'BladeRunner';
+      src: url('blade_runner.ttf') format('truetype');
+    }
+
     @font-face {
       font-family: 'NanumSquareNeo';
       src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-bRg.woff) format("woff");
     }
-    body { font-family: 'NanumSquareNeo', sans-serif; background-color: #f4f4f9; padding: 2rem; max-width: 1200px; margin: auto; }
-    h1 { text-align: center; font-size: 2rem; cursor: pointer; }
-    .chemone { font-family: 'BladeRunner', sans-serif; color: #1e40af; }
-    .upload-section, .multi-search-section { margin: 1rem 0; }
-    .cas-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
-    input[type="text"], input[type="file"] { padding: 0.5rem; font-size: 1rem; flex: 1; }
-    button { padding: 0.5rem 1rem; background-color: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    details { background: white; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1rem; padding: 0.5rem; }
-    summary { font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-    summary.red { color: red; }
-    .summary-right { display: inline-flex; gap: 0.25rem; align-items: center; margin-left: auto; }
-    .badge { display: inline-block; font-size: 0.75rem; line-height: 1; padding: 0.35rem 0.5rem; border-radius: 999px; border: 1px solid #c7d2fe; background: #eef2ff; color: #3730a3; white-space: nowrap; }
-    table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-    th, td { border: 1px solid #ddd; padding: 0.4rem; font-size: 0.9rem; }
-    th { background-color: #eff6ff; text-align: center; } /* ✅ 헤더 가운데 정렬 */
-    td { text-align: left; }
-    td.danger { color: red; }
-    .not-found { background: #fff0f0; color: #b91c1c; border: 1px solid #fca5a5; padding: 1rem; margin-top: 2rem; }
-    .notice { color: red; font-size: 0.9rem; white-space: nowrap; }
-    .multi-search-section { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem; }
-    .multi-search-section > * { margin-top: 0.3rem; }
+
+    body {
+      font-family: 'NanumSquareNeo', sans-serif;
+      background: var(--bg);
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+      color: #111827;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: clamp(1.4rem, 2.2vw, 2rem);
+      cursor: pointer;
+      margin: 0 0 1rem;
+    }
+
+    .chemone {
+      font-family: 'BladeRunner', sans-serif;
+      color: var(--brand);
+      letter-spacing: 0.5px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      box-shadow: 0 1px 3px rgba(16, 24, 40, .06);
+    }
+
+    /* 상단 바 정렬 */
+    .bar {
+      display: flex;
+      gap: .8rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .multi-search-section {
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .cas-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .5rem;
+    }
+
+    input[type="text"] {
+      height: var(--btn-h);
+      padding: 0 .8rem;
+      font-size: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    input[type="text"]::placeholder {
+      color: #9ca3af;
+    }
+
+    /* 버튼 공통 */
+    .btn {
+      height: var(--btn-h);
+      padding: 0 1rem;
+      background-color: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, .25);
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      background: #eef2ff;
+      color: #1f2937;
+      box-shadow: none;
+      border: 1px solid var(--line);
+    }
+
+    .btn svg,
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    /* + 버튼 */
+    .icon-btn {
+      width: var(--btn-h);
+      height: var(--btn-h);
+      background: #eef2ff;
+      color: #1f2937;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .actions {
+      display: grid;
+      grid-auto-flow: column;
+      gap: .5rem;
+      align-items: center;
+    }
+
+    /* 업로드 레이어: 왼쪽 정렬 + 수직 가운데 */
+    .upload-left {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      justify-content: flex-start;
+      flex: 1 1 auto;
+      min-width: 420px;
+    }
+
+    .download-side {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      justify-content: flex-end;
+      flex: 0 0 auto;
+    }
+
+    .notice {
+      color: var(--danger-fg);
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    /* ✅ 파일 입력 커스텀 */
+    .file-wrap {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    #excelInput {
+      display: none;
+    }
+
+    /* 네이티브 입력 숨김 */
+    .file-btn {
+      height: var(--btn-h);
+      padding: 0 1rem;
+      background: #eef2ff;
+      color: #1f2937;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .file-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    .file-name {
+      max-width: 260px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .help-text {
+      font-size: .85rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    details {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      padding: .15rem .5rem .55rem;
+      /* 외부행 여백 살짝 감소 */
+      overflow: hidden;
+    }
+
+    summary {
+      list-style: none;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: .45rem .3rem .3rem;
+      /* 슬림화 */
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary.red {
+      color: var(--danger-fg);
+    }
+
+    .summary-right {
+      display: inline-flex;
+      gap: .35rem;
+      align-items: center;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: .78rem;
+      line-height: 1;
+      padding: .35rem .55rem;
+      border-radius: 999px;
+      border: 1px solid var(--badge-bd);
+      background: var(--badge-bg);
+      color: var(--badge-fg);
+      white-space: nowrap;
+    }
+
+    /* 요약줄 CAS 숫자 크게 + 가독성 폰트 */
+    .summary-cas {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 1.12rem;
+      letter-spacing: .2px;
+    }
+
+    /* 테이블 래퍼: 스크롤바 없이 깔끔(내용은 말줄임) */
+    .table-wrap {
+      width: 100%;
+      overflow: hidden;
+      /* 스크롤바 제거 */
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      /* 가로폭 100%로 맞춤 */
+      border-collapse: collapse;
+      table-layout: fixed;
+      /* 셀 너비 고정 → 말줄임으로 정돈 */
+      font-size: var(--table-font);
+    }
+
+    /* 각 열 상대 너비 */
+    col.cas {
+      width: 12%;
+    }
+
+    col.group {
+      width: 10%;
+    }
+
+    col.code {
+      width: 12%;
+    }
+
+    col.name {
+      width: 20%;
+    }
+
+    col.issue {
+      width: 12%;
+    }
+
+    col.ncis {
+      width: 8%;
+    }
+
+    col.hazard {
+      width: 10%;
+    }
+
+    col.reagent {
+      width: 10%;
+    }
+
+    col.toxicimp {
+      width: 10%;
+    }
+
+    col.restrict {
+      width: 12%;
+    }
+
+    col.memo {
+      width: 10%;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: .55rem .6rem;
+      vertical-align: middle;
+    }
+
+    thead th {
+      background-color: #f3f4f6;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    /* 모든 내부행 기본 배경 연하게 통일 */
+    tbody td {
+      background: var(--row-base);
+    }
+
+    tbody tr:hover td {
+      background: var(--row-hover);
+    }
+
+    /* 셀 정리 */
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    .ellipsis {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .danger {
+      color: var(--danger-fg);
+      background: var(--danger-bg) !important;
+      font-weight: 700;
+    }
+
+    .not-found {
+      background: #fff0f0;
+      color: var(--danger-fg);
+      border: 1px solid #fca5a5;
+      padding: 1rem;
+      margin-top: 2rem;
+      border-radius: 8px;
+    }
+
+    .header-wrap {
+      position: relative;
+    }
+
+    .erp-date {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: #374151;
+      font-size: .92rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    }
+
+    .erp-date strong {
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .erp-date svg {
+      width: 16px;
+      height: 16px;
+      color: #6b7280;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="data.js"></script>
 </head>
-<body>
-  <h1 onclick="location.reload()">
-    <span class="chemone">CHEMONE</span> 품목 조회
-  </h1>
 
-  <div class="upload-section" style="display: flex; justify-content: flex-end; gap: 1rem;">
-    <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" />
-    <button onclick="downloadExcel()">엑셀 다운로드</button>
+<body>
+  <div class="header-wrap">
+    <h1 onclick="location.reload()">
+      <span class="chemone">CHEMONE</span> 품목 조회
+    </h1>
+
+    <div class="erp-date" aria-label="ERP 업데이트 날짜">
+      <!-- calendar icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+      ERP 업데이트: <strong id="erpDateText">2025-11-03</strong>
+    </div>
   </div>
 
-  <!-- ✅ CAS 입력 -->
-  <div class="multi-search-section">
-    <div style="flex: 1; min-width: 300px;" id="casContainer">
-      <div class="cas-row">
-        <input type="text" class="casInput" placeholder="CAS No. 입력 (공백/콤마/세미콜론/줄바꿈으로 다중검색)" />
-        <button onclick="addCASInput()">＋</button>
+
+  <!-- 상단 입력/액션 -->
+  <div class="panel bar">
+    <div class="multi-search-section">
+      <div id="casContainer">
+        <div class="cas-row">
+          <input type="text" class="casInput" placeholder="CAS No. 입력 (공백/콤마/세미콜론/줄바꿈으로 다중검색)" />
+          <button class="icon-btn" onclick="addCASInput()" aria-label="입력칸 추가">
+            <!-- plus icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- ✅ 버튼 + 안내 -->
-  <div class="multi-search-section" style="margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-    <div>
-      <button onclick="applyMultipleCASSearch()">검색</button>
-      <button onclick="applyReset()">초기화</button>
+    <div class="actions">
+      <button class="btn" onclick="applyMultipleCASSearch()">
+        <!-- search icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+        </svg>
+        검색
+      </button>
+      <button class="btn secondary" onclick="applyReset()">
+        <!-- reset/refresh icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 3-6.7" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M3 4v4h4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        초기화
+      </button>
     </div>
-    <div class="notice" style="margin-left: auto;">*빨간색 표시된 품목은 유독물질 표시입니다.</div>
   </div>
 
-  <div id="resultsContainer"></div>
+  <!-- 업로드 + 안내/다운로드 -->
+  <div class="panel bar" style="margin-top:.8rem;">
+    <!-- 왼쪽: 커스텀 파일선택 + 파일명 + 안내 텍스트(오른쪽 배치) -->
+    <div class="upload-left">
+      <div class="file-wrap">
+        <label for="excelInput" class="file-btn" id="chooseFileBtn" aria-label="파일 선택">
+          <!-- upload icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M5 21h14" stroke-linecap="round" />
+          </svg>
+          파일 선택
+        </label>
+        <span id="fileName" class="file-name">선택된 파일 없음</span>
+        <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" />
+      </div>
+      <div class="help-text">CAS 엑셀 파일을 업로드해주세요</div>
+    </div>
+    <!-- 오른쪽: 안내 문구 + 다운로드 버튼 -->
+    <div class="download-side">
+      <div class="notice">*빨간색 셀은 유해/유독/제한 키워드에 해당합니다.</div>
+      <button class="btn" onclick="downloadExcel()">
+        <!-- download icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M5 21h14" stroke-linecap="round" />
+        </svg>
+        엑셀 다운로드
+      </button>
+    </div>
+  </div>
+
+  <div id="resultsContainer" style="margin-top:1rem;"></div>
 
   <script>
     // Enter로 검색
@@ -84,16 +548,23 @@
     const addCASInput = () => {
       const div = document.createElement('div');
       div.className = 'cas-row';
-      div.innerHTML = '<input type="text" class="casInput" placeholder="CAS No. 입력" /> <button onclick="this.parentNode.remove()">－</button>';
+      div.innerHTML = `
+        <input type="text" class="casInput" placeholder="CAS No. 입력" />
+        <button class="icon-btn" onclick="this.parentNode.remove()" aria-label="입력칸 삭제">
+          <!-- minus icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>`;
       document.getElementById('casContainer').appendChild(div);
     };
 
-    // ✅ CAS 정규화: 접두사 제거하고 "123456-78-9" 패턴만 추출
+    // CAS 정규화
     const CAS_REGEX = /(\d{2,}-\d{2}-\d)\b/;
     function normalizeCAS(s) {
       const txt = String(s || '').toLowerCase().trim();
       const m = txt.match(CAS_REGEX);
-      return m ? m[1] : txt; // 매치되면 그 부분, 아니면 소문자 원문
+      return m ? m[1] : txt;
     }
 
     // 다중 검색어 분리 + 정규화
@@ -127,7 +598,7 @@
       );
     }
 
-    // ✅ 뱃지 빌더
+    // 뱃지 빌더
     function buildODateBadgeText(label, values) {
       if (!values || values.length === 0) return '';
       const hasO = values.some(v => /^o$/i.test(String(v).trim()));
@@ -151,17 +622,17 @@
       return `${restricted}${purity ? ` (${purity})` : ''}`.trim();
     }
 
-    // ✅ 검색 실행 (데이터 CAS도 정규화해서 비교)
+    // 검색 실행 (데이터 CAS도 정규화해서 비교)
     function applyMultipleCASSearch() {
       const inputs = document.querySelectorAll('.casInput');
       const keywords = Array.from(inputs).flatMap(i => tokenizeCAS(i.value)).filter(Boolean);
-      const uniqueKeywords = unique(keywords); // 이미 정규화 완료
+      const uniqueKeywords = unique(keywords);
 
       const matchedSet = new Set();
       filteredData = window.DATA.filter(item => {
         const key = findKey(item, 'CAS No.');
         const raw = key ? item[key]?.toString() : '';
-        const valueNorm = normalizeCAS(raw);        // 데이터 쪽도 정규화
+        const valueNorm = normalizeCAS(raw);
         const matched = uniqueKeywords.includes(valueNorm);
         if (matched) matchedSet.add(valueNorm);
         return matched;
@@ -171,7 +642,7 @@
       renderAccordion(unmatched);
     }
 
-    // ✅ 아코디언 렌더 (정규화된 CAS로 그룹핑)
+    // 아코디언 렌더 (정규화된 CAS로 그룹핑)
     function renderAccordion(unmatchedCAS = []) {
       resultsContainer.innerHTML = '';
       if (filteredData.length === 0) resultsContainer.innerHTML = '<p>검색 결과가 없습니다.</p>';
@@ -190,7 +661,7 @@
       }));
       groups.sort((a, b) => (a.danger === b.danger ? a.cas.localeCompare(b.cas, 'ko') : a.danger ? -1 : 1));
 
-      // 헤더 (요청 순서 & 라벨)
+      // 헤더
       const header = [
         'CAS No.',
         '품목그룹',
@@ -201,51 +672,67 @@
         '유해화학물판매업신고',
         '유해화학물 시약판매업신고',
         '유독물수입신고',
-        '제한물질수입신고(Purity)',   // 라벨만 변경
+        '제한물질수입신고(Purity)',
         '비고'
       ];
 
       groups.forEach(({ cas, items, danger }) => {
         // 요약 뱃지
-        const hazardVals  = collectFieldValues(items, '유해화학물판매업신고');
+        const hazardVals = collectFieldValues(items, '유해화학물판매업신고');
         const reagentVals = collectFieldValues(items, '유해화학물시약판매업신고');
-        const toxicVals   = collectFieldValues(items, '유독물수입신고');
+        const toxicVals = collectFieldValues(items, '유독물수입신고');
 
-        const hazardBadge  = buildHazardBadgeText(hazardVals);
+        const hazardBadge = buildHazardBadgeText(hazardVals);
         const reagentBadge = buildReagentBadgeText(reagentVals);
-        const toxicBadge   = buildToxicImportBadgeText(toxicVals);
+        const toxicBadge = buildToxicImportBadgeText(toxicVals);
 
         const details = document.createElement('details');
         const summary = document.createElement('summary');
         summary.className = danger ? 'red' : '';
         summary.innerHTML = `
-          <span>
+          <span class="nowrap">
             <strong>CAS No.:</strong>
-            <span class="${danger ? 'red' : ''}">${cas}</span>
-            <span style="color:gray">(${items.length}개)</span>
+            <span class="summary-cas">${cas}</span>
+            <span style="color:var(--muted); font-weight:500;">(${items.length}개)</span>
           </span>
           <span class="summary-right">
-            ${hazardBadge  ? `<span class="badge">${hazardBadge}</span>`   : ''}
+            ${hazardBadge ? `<span class="badge">${hazardBadge}</span>` : ''}
             ${reagentBadge ? `<span class="badge">${reagentBadge}</span>` : ''}
-            ${toxicBadge   ? `<span class="badge">${toxicBadge}</span>`   : ''}
+            ${toxicBadge ? `<span class="badge">${toxicBadge}</span>` : ''}
           </span>
         `;
         details.appendChild(summary);
 
         // 표
+        const tableWrap = document.createElement('div');
+        tableWrap.className = 'table-wrap';
+
         const table = document.createElement('table');
-        table.innerHTML = '<thead><tr>' + header.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
-        const tbody = document.createElement('tbody');
+        table.innerHTML = `
+          <colgroup>
+            <col class="cas"><col class="group"><col class="code"><col class="name"><col class="issue">
+            <col class="ncis"><col class="hazard"><col class="reagent"><col class="toxicimp"><col class="restrict"><col class="memo">
+          </colgroup>
+          <thead><tr>${header.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+          <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector('tbody');
 
         items.forEach(item => {
           const row = document.createElement('tr');
-          header.forEach(h => {
+          header.forEach((h, idx) => {
             const td = document.createElement('td');
 
-            // 제한물질수입신고(Purity): Purity를 괄호로 덧붙여 표기
+            // 열 스타일
+            if (idx === 0 || idx === 2) td.classList.add('mono', 'center', 'ellipsis'); // CAS, 품목코드
+            if ([1, 5, 6, 7, 8, 9, 10].includes(idx)) td.classList.add('center', 'ellipsis');
+            if (idx === 3 || idx === 4) td.classList.add('ellipsis'); // 품목명/이슈
+
             if (/^제한물질수입신고/i.test(h)) {
               const combined = renderRestrictedWithPurity(item);
               td.innerHTML = combined;
+              td.title = combined;
               if (isDangerVal(combined)) td.classList.add('danger');
               row.appendChild(td);
               return;
@@ -254,14 +741,15 @@
             const k = findKey(item, h);
             const val = k ? (item[k] ?? '') : '';
             td.innerHTML = val;
+            td.title = String(val);
             if (isDangerVal(val)) td.classList.add('danger');
             row.appendChild(td);
           });
           tbody.appendChild(row);
         });
 
-        table.appendChild(tbody);
-        details.appendChild(table);
+        tableWrap.appendChild(table);
+        details.appendChild(tableWrap);
         resultsContainer.appendChild(details);
       });
 
@@ -296,16 +784,29 @@
       document.getElementById('casContainer').innerHTML = `
         <div class="cas-row">
           <input type="text" class="casInput" placeholder="CAS No. 입력 (공백/콤마/세미콜론/줄바꿈으로 다중검색)" />
-          <button onclick="addCASInput()">＋</button>
+          <button class="icon-btn" onclick="addCASInput()" aria-label="입력칸 추가">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>`;
       filteredData = [];
       resultsContainer.innerHTML = '';
-      document.getElementById('excelInput').value = '';
+      // 파일 입력 초기화 + 파일명 라벨 복구
+      const inp = document.getElementById('excelInput');
+      const fn = document.getElementById('fileName');
+      if (inp) inp.value = '';
+      if (fn) fn.textContent = '선택된 파일 없음';
     };
 
-    // 업로드 처리 (엑셀/CSV) → 입력값도 정규화됨
+    // 업로드 처리
     document.getElementById('excelInput').addEventListener('change', e => {
       const file = e.target.files[0];
+
+      // ▼ 파일명 라벨 업데이트
+      const fn = document.getElementById('fileName');
+      if (fn) fn.textContent = file ? file.name : '선택된 파일 없음';
+
       if (!file) return;
       const reader = new FileReader();
       reader.onload = evt => {
@@ -320,7 +821,7 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // 업로드된 목록 필터링 (정규화 비교)
+    // 업로드 목록 필터링
     function applyCASFilter(casListRaw) {
       const tokens = unique(casListRaw.flatMap(v => tokenizeCAS(v)));
       const matchedSet = new Set();
@@ -335,6 +836,11 @@
       const unmatched = tokens.filter(kw => !matchedSet.has(kw));
       renderAccordion(unmatched);
     }
+
+    // 필요 시 여기만 바꾸면 화면에 자동 반영됩니다.
+    document.getElementById('erpDateText').textContent = '2025-11-03';
+
   </script>
 </body>
+
 </html>
